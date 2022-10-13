@@ -1,0 +1,26 @@
+{
+    "compilerOptions": {
+        "resolveJsonModule": true,
+        "rootDirs": [
+            "src",
+            "config"
+        ],
+        "esModuleInterop": true,
+        "downlevelIteration": true,
+        "outDir": "out",
+        "allowJs": true,
+        "skipLibCheck": true,
+        "skipDefaultLibCheck": true,
+        
+    },
+    "include": [
+        "config/*",
+        "src/**/*.ts",
+        "src/*.ts"
+    ],
+    "exclude": [
+        "**/node_modules/**/*",
+        "**/node_modules/*",
+        "node_modules"
+    ]
+}
