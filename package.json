@@ -16,5 +16,8 @@
   "bugs": {
     "url": "https://github.com/7Bit420/SC-Connect-Webserver/issues"
   },
-  "homepage": "https://github.com/7Bit420/SC-Connect-Webserver#readme"
+  "homepage": "https://github.com/7Bit420/SC-Connect-Webserver#readme",
+  "dependencies": {
+    "@types/node": "^18.8.5"
+  }
 }
