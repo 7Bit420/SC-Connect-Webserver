@@ -1,0 +1,20 @@
+{
+  "name": "sc-connect-webserver",
+  "version": "1.0.0",
+  "description": "The webserver for sc-connect",
+  "main": "src/index.ts",
+  "scripts": {
+    "build": "rm -R -f ./out; cp -R ./src/. ./out; find ./out -name \"*.ts\" -delete; tsc;",
+    "start": "node out/index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/7Bit420/SC-Connect-Webserver.git"
+  },
+  "author": "Michael Bell, Yup Meng Queck",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/7Bit420/SC-Connect-Webserver/issues"
+  },
+  "homepage": "https://github.com/7Bit420/SC-Connect-Webserver#readme"
+}
