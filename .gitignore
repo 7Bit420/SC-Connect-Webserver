@@ -3,6 +3,5 @@
 node_modules
 out
 pages/**
-!pages/errors
 !pages/errors/**
 !pages/index.html
