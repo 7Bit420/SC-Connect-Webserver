@@ -5,7 +5,8 @@
   "main": "src/index.ts",
   "scripts": {
     "build": "rm -R -f ./out; cp -R ./src/. ./out; find ./out -name \"*.ts\" -delete; tsc;",
-    "start": "node out/index.js"
+    "start": "node out/index.js",
+    "fetch-mime": "node out/mime.js"
   },
   "repository": {
     "type": "git",
