@@ -1,20 +1,32 @@
-import * as http from 'http';
 import { config } from '.';
+import * as http from 'http';
 import * as fs from 'fs';
 import * as os from 'os';
 
 var mimes = []
 
 function get(path: string) {
-    return mimes.find(t => path.endsWith(t.name))
+    return mimes.find(t => path.endsWith(t.info.base)) ?? 'text/plain'
 }
 
 function phraseCSV(path: string) {
-    var data = fs.readFileSync(path).toString('ascii').split('\n').map(t => t.split(','))
-    var head = data.splice(0, 1)[0]
+    var data = fs.readFileSync(path).toString('ascii').trimEnd().split('\n').map(t => t.trimEnd().split(','))
+    data.splice(0, 1)
+    var head = ["mime","name", "refrence"]
     return data.map(t => {
-        var obj = {}
+        var obj = { info: { prams: [], ext: '', base: '', type: '' } }
         t.forEach((t, i) => obj[head[i]] = t)
+        obj["name"].split(/(?=[\+,\/,\;])/g).forEach((element) => {
+            if (element.startsWith('+')) {
+                obj.info.ext = element.replace('+', '')
+            } else if (element.startsWith(';')) {
+                obj.info.prams.push(element.replace(';', ''))
+            } else if (element.startsWith('/')) {
+                obj.info.base = element.replace('/','')
+            } else {
+                obj.info.type = element
+            }
+        });
         return obj
     })
 }
