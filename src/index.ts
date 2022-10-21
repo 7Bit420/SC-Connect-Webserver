@@ -2,7 +2,8 @@ import { serverListner } from './serverListner'
 import { lsr } from './util/lsr'
 import * as http from 'http'
 import * as path from 'path'
-import * as fs from 'fs'
+import { argv, exit } from 'process'
+import { init } from './mime'
 
 interface handler {
     path: string,
@@ -21,6 +22,13 @@ const specialHandlers: Map<string, handler> = new Map();
 const handlers: handler[] = [];
 const config = {
     readir: process.env.READIR ?? path.resolve(__dirname, '../')
+}
+
+console.log(argv.splice(0,1))
+
+switch (process.argv[0]) {
+    case 'fetch-mime':
+        init()
 }
 
 lsr(__dirname + '/handlers').filter((t) => t.endsWith('.js')).forEach(t => {
