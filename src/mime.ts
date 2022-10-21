@@ -1,18 +1,22 @@
-import { config } from '.';
+import * as index from './index';
 import * as http from 'http';
+import * as path from 'path';
 import * as fs from 'fs';
 import * as os from 'os';
 
-var mimes = []
+const config = {
+    readir: process.env.READIR ?? path.resolve(__dirname, '../')
+}
+var mimes = JSON.parse(fs.readFileSync(config.readir + '/config/mime.json').toString())
 
 function get(path: string) {
-    return mimes.find(t => path.endsWith(t.info.base)) ?? 'text/plain'
+    return mimes.find(t => true).name ?? 'text/plain'
 }
 
 function phraseCSV(path: string) {
     var data = fs.readFileSync(path).toString('ascii').trimEnd().split('\n').map(t => t.trimEnd().split(','))
     data.splice(0, 1)
-    var head = ["mime","name", "refrence"]
+    var head = ["mime", "name", "refrence"]
     return data.map(t => {
         var obj = { info: { prams: [], ext: '', base: '', type: '' } }
         t.forEach((t, i) => obj[head[i]] = t)
@@ -22,7 +26,7 @@ function phraseCSV(path: string) {
             } else if (element.startsWith(';')) {
                 obj.info.prams.push(element.replace(';', ''))
             } else if (element.startsWith('/')) {
-                obj.info.base = element.replace('/','')
+                obj.info.base = element.replace('/', '')
             } else {
                 obj.info.type = element
             }
