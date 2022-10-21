@@ -24,8 +24,6 @@ const config = {
     readir: process.env.READIR ?? path.resolve(__dirname, '../')
 }
 
-console.log(argv.splice(0,1))
-
 switch (process.argv[0]) {
     case 'fetch-mime':
         init()

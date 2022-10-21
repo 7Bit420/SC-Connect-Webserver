@@ -3,5 +3,6 @@
 node_modules
 out
 pages/**
+njs-*
 !pages/errors/**
 !pages/index.html
