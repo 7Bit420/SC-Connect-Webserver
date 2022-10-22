@@ -10,7 +10,7 @@ const config = {
 var mimes = JSON.parse(fs.readFileSync(config.readir + '/config/mime.json').toString())
 
 function get(path: string) {
-    return mimes.find(t => true).name ?? 'text/plain'
+    return mimes.find(t => path.endsWith(t.info.base)).name ?? 'text/plain'
 }
 
 function phraseCSV(path: string) {

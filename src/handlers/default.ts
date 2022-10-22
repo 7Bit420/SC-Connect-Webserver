@@ -20,6 +20,7 @@ function handler(
             fs.existsSync(`${mainConfig.readir}/pages/${req.url}`) &&
             fs.lstatSync(`${mainConfig.readir}/pages/${req.url}`).isFile()
         ) {
+            console.log(get(req.url))
             res.writeHead(200, 'OK', { 'Content-Type': get(req.url) })
             fs.createReadStream(`${mainConfig.readir}/pages/${req.url}`).pipe(res).on('drain', res.end)
         }  else if (
