@@ -1,6 +1,7 @@
 .vscode
 .git
 .links
+database
 node_modules
 out
 pages/**

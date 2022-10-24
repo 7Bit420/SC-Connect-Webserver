@@ -19,6 +19,7 @@
   },
   "homepage": "https://github.com/7Bit420/SC-Connect-Webserver#readme",
   "dependencies": {
-    "@types/node": "^18.8.5"
+    "@types/node": "^18.8.5",
+    "surrealdb.js": "^0.5.0"
   }
 }
