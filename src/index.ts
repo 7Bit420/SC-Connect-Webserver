@@ -16,6 +16,15 @@ const config = {
         "handle",
         "server"
     ]
-}
+};
+
+
+
+(async () => {
+    for (const initliser in config.bootorder) {
+        processEventEmitter.emit(`${initliser}:init:start`)
+        await new Promise(res => processEventEmitter.once(`${initliser}:init:finish`, res))
+    }
+});
 
 export { config, processEventEmitter }

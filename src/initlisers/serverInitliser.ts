@@ -1,6 +1,11 @@
-import * as http from 'http'
 import { serverListner } from '../serverListner'
+import { processEventEmitter } from '..'
+import * as http from 'http'
 
-const server = http.createServer({}, serverListner)
+processEventEmitter.on('server:init:start', async () => {
 
-server.listen(80)
+    const server = http.createServer({}, serverListner)
+
+    server.listen(80)
+    server.once('listening', processEventEmitter.emit.bind(processEventEmitter, 'server:init:finish'))
+})

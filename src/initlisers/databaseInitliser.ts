@@ -22,13 +22,16 @@ async function attemptFunc(
 }
 
 async function init() {
-    await signIn(
-        config.database.username,
-        config.database.password,
-        10
-    );
+    await attemptFunc(10, db.signin, {
+        user: config.database.username,
+        pass: config.database.username,
+    });
 
-    db.use(config.database.namespace, 'users')
+    await attemptFunc(10, db.use, config.database.namespace, 'users')
+
+    processEventEmitter.emit('database:init:done')
 }
 
 processEventEmitter.once('database:init:start', init)
+
+export { db }

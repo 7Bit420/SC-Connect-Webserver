@@ -1,5 +1,5 @@
 import * as http from "http";
-import * as surreal from "surrealdb.js"
+import { db } from '../../initlisers/databaseInitliser'
 
 const path = '/user/create'
 const special = false
@@ -54,7 +54,7 @@ async function handler(
             .map(([t, a]) => [t, stringToType(a)])
     );
 
-    var userFinalInfo = {}
+    var userFinalInfo = { id: '' }
 
     if (userReqInfo.migratedAccount == true) {
         for (var k in autoInfo.keys()) {
@@ -99,16 +99,16 @@ async function handler(
         }
     }
 
-    // @TODO Send user data to database to be created
+    try {
+        userFinalInfo.id = (await db.create('student', userFinalInfo)).id
 
-    if ("sucess") {
         res.writeHead(200, "User Created", { 'Content-Type': 'application/json' })
         res.write(JSON.stringify({
             code: 200,
             user: userFinalInfo
         }))
         return res.end()
-    } else {
+    } catch (err) {
         res.writeHead(500, "Internal Database Error", { 'Content-Type': 'application/json' })
         res.write(JSON.stringify({
             code: 500,
