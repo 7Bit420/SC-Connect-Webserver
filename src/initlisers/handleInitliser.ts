@@ -1,4 +1,4 @@
-import { processEventEmitter } from '..'
+import { config, processEventEmitter } from '..'
 import { lsr } from '../util/lsr'
 import * as http from 'http'
 
@@ -19,13 +19,13 @@ const specialHandlers: Map<string, handler> = new Map();
 const handlers: handler[] = [];
 
 processEventEmitter.once('handle:init:start', async () => {
-    for (var t in lsr(__dirname + '/handlers').filter((t) => t.endsWith('.js'))) {
-        var handle: handler = require(`${__dirname}/handlers/${t}`);
+    for (var t of lsr(config.indexdir + '/handlers').filter((t) => t.endsWith('.js'))) {
+        var handle: handler = require(t);
         if (handle.special) {
             specialHandlers.set(handle.path, handle)
-            return
+            continue
         }
-        if (!handle.handler || !handle.path) { return }
+        if (!handle.handler || !handle.path) { continue }
 
         if (handle.config?.quickHandle) {
             quickHandlers.set(handle.config.quickHandle, handle)

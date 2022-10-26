@@ -6,7 +6,9 @@
   "scripts": {
     "build": "rm -R -f ./out; cp -R ./src/. ./out; find ./out -name \"*.ts\" -delete; tsc;",
     "start": "node out/index.js",
-    "fetch-mime": "node out/mime.js"
+    "fetch-mime": "node out/mime.js",
+    "start-db-cold": "surreal start --addr 127.0.0.1:8000 --user root --pass root \"file:///$PWD/database\"",
+    "start-db-hot": ""
   },
   "repository": {
     "type": "git",

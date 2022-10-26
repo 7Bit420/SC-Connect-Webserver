@@ -8,7 +8,7 @@ function lsr(path: string, dirent?: boolean): fs.Dirent[] | string[] {
         if ((dirent ? t : fs.lstatSync(`${path}/${dirent ? t.name : t}`)).isDirectory()) {
             return lsr(`${path}/${dirent ? t.name : t}`, dirent)
         } else {
-            return dirent ? t.name : t
+            return `${path}/${dirent ? t.name : t}`
         }
     }).flat()
 }

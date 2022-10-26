@@ -5,26 +5,32 @@ const processEventEmitter = new EventEmitter()
 
 const config = {
     readir: process.env.READIR ?? path.resolve(__dirname, '../'),
+    indexdir: __dirname,
     database: {
-        username: '',
-        password: '',
-        namespace: ''
+        username: 'root',
+        password: 'root',
+        namespace: 'test'
     },
     bootorder: [
-        "database",
-        "mime",
-        "handle",
-        "server"
-    ]
+        { name: "database", module: require('./initlisers/databaseInitliser') },
+        { name: "mime", module: require('./initlisers/mimeInistliser') },
+        { name: "handle", module: require('./initlisers/handleInitliser') },
+        { name: "server", module: require('./initlisers/serverInitliser') },
+    ],
+    discord: {
+        clientID: "1034566036625817690"
+    }
 };
 
-
-
 (async () => {
-    for (const initliser in config.bootorder) {
-        processEventEmitter.emit(`${initliser}:init:start`)
-        await new Promise(res => processEventEmitter.once(`${initliser}:init:finish`, res))
+    for (const initliser of config.bootorder) {
+        console.log('INIT START:', initliser.name)
+        await new Promise(res =>{
+            processEventEmitter.once(`${initliser.name}:init:finish`, res)
+            processEventEmitter.emit(`${initliser.name}:init:start`)
+        })
+        console.log('INIT FINISH:', initliser.name)
     }
-});
+})();
 
 export { config, processEventEmitter }

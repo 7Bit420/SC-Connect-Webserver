@@ -56,43 +56,44 @@ async function handler(
 
     var userFinalInfo = { id: '' }
 
-    if (userReqInfo.migratedAccount == true) {
-        for (var k in autoInfo.keys()) {
-            if (autoInfo[k] == typeof userReqInfo[k]) {
+    if (userReqInfo.migratedAccount) {
+        for (var k of autoInfo.keys()) {
+            if (autoInfo.get(k) == typeof userReqInfo[k]) {
                 userFinalInfo[k] = userReqInfo[k]
             } else {
                 res.writeHead(400, "Invalid User Data", { 'Content-Type': 'application/json' })
                 res.write(JSON.stringify({
                     error: "Invalid User Data",
-                    message: `Invalid User Data ${k} needs to be type "${autoInfo[k]}"`,
+                    message: `Invalid User Data "${k}" needs to be type "${autoInfo.get(k)}"`,
                     code: 400
                 }))
                 return res.end()
             }
         }
     } else {
-        for (var k in additinalInfo.keys()) {
-            if (additinalInfo[k] == typeof userReqInfo[k]) {
+        for (var k of manualInfo.keys()) {
+            if (manualInfo.get(k) == typeof userReqInfo[k]) {
                 userFinalInfo[k] = userReqInfo[k]
             } else {
                 res.writeHead(400, "Invalid User Data", { 'Content-Type': 'application/json' })
                 res.write(JSON.stringify({
                     error: "Invalid User Data",
-                    message: `Invalid User Data ${k} needs to be type "${additinalInfo[k]}"`,
+                    message: `Invalid User Data ${k} needs to be type "${manualInfo.get(k)}"`,
                     code: 400
                 }))
                 return res.end()
             }
         }
     }
-    for (var k in additinalInfo.keys()) {
-        if ((additinalInfo[k] == typeof userReqInfo[k]) || (typeof userFinalInfo == "undefined")) {
+
+    for (var k of additinalInfo.keys()) {
+        if ((additinalInfo.get(k) == typeof userReqInfo[k]) || (typeof userReqInfo[k] == "undefined")) {
             userFinalInfo[k] = userReqInfo[k]
         } else {
             res.writeHead(400, "Invalid User Data", { 'Content-Type': 'application/json' })
             res.write(JSON.stringify({
                 error: "Invalid User Data",
-                message: `Invalid User Data ${k} needs to be type "${additinalInfo[k]}"`,
+                message: `Invalid User Data ${k} needs to be type "${additinalInfo.get(k)}"`,
                 code: 400
             }))
             return res.end()
@@ -100,7 +101,18 @@ async function handler(
     }
 
     try {
-        userFinalInfo.id = (await db.create('student', userFinalInfo)).id
+        var query: any = (await db.query(`SELECT * FROM user WHERE (username = ${userFinalInfo['username']}) OR ${userReqInfo.migratedAccount ? `(email = ${userFinalInfo['email']})` : `(studentID = ${userFinalInfo['studentID']})`}`))[0].result
+        if (query.length > 0) {
+            res.writeHead(400, "User Created", { 'Content-Type': 'application/json' })
+            res.write(JSON.stringify({
+                code: 400,
+                error: "user already exsists",
+                message: "a user allready exsists with that username or password"
+            }))
+            return res.end()
+        }
+
+        userFinalInfo.id = (await db.create('user', userFinalInfo)).id
 
         res.writeHead(200, "User Created", { 'Content-Type': 'application/json' })
         res.write(JSON.stringify({
@@ -109,6 +121,7 @@ async function handler(
         }))
         return res.end()
     } catch (err) {
+        console.log(err)
         res.writeHead(500, "Internal Database Error", { 'Content-Type': 'application/json' })
         res.write(JSON.stringify({
             code: 500,
@@ -118,3 +131,5 @@ async function handler(
         return res.end()
     }
 }
+
+export { path, config, special, handler }
