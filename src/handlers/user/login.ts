@@ -1,16 +1,12 @@
 import { db } from '../../initlisers/databaseInitliser'
 import * as http from "http";
 import { session } from '../../util/session';
+import { genLongID } from '../../util/genLongID';
 
 const path = '/user/login'
 const special = false
 const config = {
     quickHandle: '/user/login'
-}
-
-function genLongID() {
-    return "xxxxxxxxxx-xxxxxxx-xxxxx-xxxxxxx-xxxxxxxxxx"
-        .replace(/x/g, () => String.fromCharCode(Math.floor(Math.random() * 26) + 97))
 }
 
 async function handler(
@@ -29,7 +25,15 @@ async function handler(
         return res.end()
     }
 
-    if (user.sessions.length <= 0) {
+    var sessions: session[] = (await db.query<{}>(`SELECT * FROM ${user.sessions.join(', ')}`))[0].result
+    sessions.forEach(t=>{
+        if (t.expiresAt < Date.now()) {
+            db.delete(t.id)
+            db.query(`UPDATE ${user.id} SET sessions -= ${t.id}`)
+        }
+    })
+
+    if (sessions.length <= 0) {
         var sessionid = genLongID()
         var session = await db.create(`session:\`${sessionid}\``, {
             expiresAt: Date.now() + 21600000, // 6 Hours
@@ -48,8 +52,6 @@ async function handler(
         }))
         return res.end()
     } else {
-        var sessions: session[] = (await db.query<{}>(`SELECT * FROM ${user.sessions.join(', ')}`))[0].result
-
         var updateSession = sessions.splice(sessions.findIndex(t => !t.sudo), 1)[0]
         sessions.filter(t => t.sudo).forEach(r => db.delete(r.id))
 

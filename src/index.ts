@@ -18,7 +18,9 @@ const config = {
         { name: "server", module: require('./initlisers/serverInitliser') },
     ],
     discord: {
-        clientID: "1034566036625817690"
+        clientID: "1034566036625817690",
+        redirectURI: "http://localhost/user/link/callback/discord",
+        secret: "7pkfBIrxYg37klCPG0mNWAgIIVCszoc9"
     }
 };
 

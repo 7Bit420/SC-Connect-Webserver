@@ -1,6 +1,7 @@
-import { db } from '../../initlisers/databaseInitliser';
-import { checkSession } from '../../util/checkSession';
-import { session } from "../../util/session";
+import { db } from '../../../initlisers/databaseInitliser';
+import { checkSession } from '../../../util/checkSession';
+import { session } from "../../../util/session";
+import { config as mainConfig } from '../../..'
 import * as http from "http";
 
 const path = '/user/link'
@@ -44,16 +45,21 @@ async function handler(
 
     switch (requrl.searchParams.get('intergation')) {
         case 'discord':
+            var scopes = ['identify']
             var linkSession = await db.create('link-session', {
                 user: user.id,
                 intergation: 'discord',
-                scopes: ['identify']
+                scopes: scopes
             })
             var prams = [
-                ['state',linkSession.id],
+                ['redirect_uri', mainConfig.discord.redirectURI],
+                ['client_id', mainConfig.discord.clientID],
+                ['scope', scopes.join('%20')],
+                ['state', linkSession.id],
+                ['response_type', 'code'],
             ]
-            res.writeHead(302, {
-                Location: `https://discord.com/oauth2/authorize?${prams.map(t=>t.join('=')).join('&')}`
+            res.writeHead(302, "Intergration Redirect", {
+                Location: `https://discord.com/oauth2/authorize?${prams.map(t => t.map(t => encodeURIComponent(t)).join('=')).join('&')}`
             })
             res.end()
             break;
