@@ -1,9 +1,10 @@
-import { db } from '../../initlisers/databaseInitliser'
-import { session } from './login'
+import { db } from '../../initlisers/databaseInitliser';
+import { checkSession } from '../../util/checkSession';
+import { session } from "../../util/session";
 import * as http from "http";
 
 const path = '/user/link'
-const special = true
+const special = false
 const config = {
     quickHandle: '/user/link'
 }
@@ -12,25 +13,62 @@ async function handler(
     req: http.IncomingMessage,
     res: http.ServerResponse
 ) {
-    const cookies = Object.fromEntries(req.headers.cookie.split('&').map(t => t.split('=').map(t => decodeURIComponent(t))))
-    var loginSession: session = await db.select(cookies.sessionID)[0]
+    const cookies = Object.fromEntries(req.headers.cookie.split(';').map(t => t.split('=').map(t => decodeURIComponent(t).trim())))
 
-    if (!loginSession.sudo || (Date.now() > loginSession.expiresAt)) {
-        res.writeHead(400, "Invalid Session", { 'Content-Type': 'application/json' })
+    var session: session = await checkSession(cookies.sessionID).catch((reg) => {
+        res.writeHead(reg.code, reg.error)
+        res.write(JSON.stringify(reg))
+        res.end()
+        return undefined
+    })
+
+    if (!session) { return }
+
+    if (!session.sudo) {
+        res.writeHead(400, "Invalid Session")
         res.write(JSON.stringify({
             code: 400,
             error: "Invalid Session",
             message: "To link an intergration you must use a sudo session"
         }))
-        if (Date.now() > loginSession.expiresAt) {
-            db.delete(loginSession.id)
-        }
         return res.end()
     }
 
-    var user = await db.select(loginSession.user)[0]
+    try {
+        var user: any = (await db.select(session.user))[0]
+    } catch (error) {
+        console.log(error)
+    }
 
-    console.log(user)
+    const requrl = new URL(req.url, `http://${req.headers.host}`)
+
+    switch (requrl.searchParams.get('intergation')) {
+        case 'discord':
+            var linkSession = await db.create('link-session', {
+                user: user.id,
+                intergation: 'discord',
+                scopes: ['identify']
+            })
+            var prams = [
+                ['state',linkSession.id],
+            ]
+            res.writeHead(302, {
+                Location: `https://discord.com/oauth2/authorize?${prams.map(t=>t.join('=')).join('&')}`
+            })
+            res.end()
+            break;
+        default:
+            res.writeHead(400, "Invalid Intergation")
+            res.write(JSON.stringify({
+                code: 400,
+                error: "Invalid Intergation",
+                message: "No implementation for that intergation"
+            }))
+            return res.end()
+    }
+
+
+    res.end()
 }
 
 /*

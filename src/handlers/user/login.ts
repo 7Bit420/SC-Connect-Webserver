@@ -1,5 +1,6 @@
 import { db } from '../../initlisers/databaseInitliser'
 import * as http from "http";
+import { session } from '../../util/session';
 
 const path = '/user/login'
 const special = false
@@ -7,17 +8,9 @@ const config = {
     quickHandle: '/user/login'
 }
 
-interface session {
-    expiresAt: number
-    createdAt: number
-    sudo: boolean
-    user: string
-    id: string
-}
-
 function genLongID() {
     return "xxxxxxxxxx-xxxxxxx-xxxxx-xxxxxxx-xxxxxxxxxx"
-        .replace(/x/g, () => String.fromCharCode(Math.floor(Math.random() * 26) + 61))
+        .replace(/x/g, () => String.fromCharCode(Math.floor(Math.random() * 26) + 97))
 }
 
 async function handler(
@@ -37,14 +30,15 @@ async function handler(
     }
 
     if (user.sessions.length <= 0) {
-        var session = await db.create('session:' + genLongID(), {
+        var sessionid = genLongID()
+        var session = await db.create(`session:\`${sessionid}\``, {
             expiresAt: Date.now() + 21600000, // 6 Hours
             createdAt: Date.now(),
             sudo: false,
             user: user.id
         })
 
-        await db.query(`UPDATE ${user.id} SET sessions += ${session.id}`)
+        db.query(`UPDATE ${user.id} SET sessions += ${session.id}`)
 
         res.writeHead(200, "Session Created", { 'Content-Type': 'application/json' })
         res.write(JSON.stringify({
@@ -59,15 +53,22 @@ async function handler(
         var updateSession = sessions.splice(sessions.findIndex(t => !t.sudo), 1)[0]
         sessions.filter(t => t.sudo).forEach(r => db.delete(r.id))
 
-        db.update(updateSession.id, {
-            expiresAt: updateSession.expiresAt + 21600000
-        })
+        try {
+            db.modify(updateSession.id, [{
+                op: 'change',
+                path: 'expiresAt',
+                value: (Date.now() + 21600000).toString(),
+            }])
+        } catch (err) {
+            console.log('Modify')
+        }
 
         res.writeHead(200, "Session Renued", { 'Content-Type': 'application/json' })
         res.write(JSON.stringify({
             code: 200,
-            error: "Session Renued",
-            id: updateSession.id
+            message: "Session Renued",
+            id: updateSession.id,
+            expiresAt: updateSession.expiresAt
         }))
         return res.end()
     }
