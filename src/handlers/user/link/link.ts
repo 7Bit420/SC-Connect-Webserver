@@ -42,10 +42,10 @@ async function handler(
     }
 
     const requrl = new URL(req.url, `http://${req.headers.host}`)
-
-    switch (requrl.searchParams.get('intergation')) {
+    
+    switch (requrl.searchParams.get('intergration')) {
         case 'discord':
-            var scopes = ['identify']
+            var scopes = ['identify', 'email', 'connections', 'messages.read']
             var linkSession = await db.create('link-session', {
                 user: user.id,
                 intergation: 'discord',
@@ -54,7 +54,7 @@ async function handler(
             var prams = [
                 ['redirect_uri', mainConfig.discord.redirectURI],
                 ['client_id', mainConfig.discord.clientID],
-                ['scope', scopes.join('%20')],
+                ['scope', scopes.join(' ')],
                 ['state', linkSession.id],
                 ['response_type', 'code'],
             ]
@@ -96,11 +96,11 @@ http://local.com/test
 /   &error_description=The+requested+scope+is+invalid%2C+unknown%2C+or+malformed.
 /   &state=conection%3ATEST
 
-connections ./
-email ./
-identify ./
-messages.read ./
-relationships.read ./
+connections
+email
+identify
+messages.read
+relationships.read <- Error (Requires Discord Approvel)
 
 code -> d2G2ZylCb9HfP3oGEsZvfwy4QOPMTD
 

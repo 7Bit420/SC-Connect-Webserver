@@ -15,7 +15,8 @@ const config = {
         { name: "database", module: require('./initlisers/databaseInitliser') },
         { name: "mime", module: require('./initlisers/mimeInistliser') },
         { name: "handle", module: require('./initlisers/handleInitliser') },
-        { name: "server", module: require('./initlisers/serverInitliser') },
+        { name: "https", module: require('./initlisers/httpsServerInitliser') },
+        { name: "http", module: require('./initlisers/httpServerInitliser') },
     ],
     discord: {
         clientID: "1034566036625817690",
@@ -36,3 +37,5 @@ const config = {
 })();
 
 export { config, processEventEmitter }
+
+// client_id=1034566036625817690&client_secret=7pkfBIrxYg37klCPG0mNWAgIIVCszoc9&token=wNs2n7iTwIECujumMy09VooMufs6tr

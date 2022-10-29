@@ -1,9 +1,8 @@
 import { db } from '../../../initlisers/databaseInitliser';
-import { checkSession } from '../../../util/checkSession';
-import { session } from "../../../util/session";
-import { config as mainConfig } from '../../..'
-import * as http from "http";
 import { genLongID } from '../../../util/genLongID';
+import { config as mainConfig } from '../../..';
+import * as https from "https";
+import * as http from "http";
 
 const path = '/user/link/callback'
 const special = false
@@ -21,12 +20,14 @@ interface discordIntergtaionSession extends intergrationSession {
     scopes: string[]
 }
 
-interface discordTokenResponse {
+interface discordIntergration {
     access_token: string,
     token_type: string,
-    expires_in: number,
     refresh_token: string,
     scope: string,
+    expires_at: number,
+    created_at: number,
+    id: string,
 }
 
 async function handler(
@@ -57,7 +58,7 @@ async function handler(
                 return res.end()
             }
             db.delete(session.id);
-            new Promise((reg, resolve) => {
+            new Promise((resolve, reg) => {
                 var data = [
                     ['client_id', mainConfig.discord.clientID],
                     ['client_secret', mainConfig.discord.secret],
@@ -65,8 +66,8 @@ async function handler(
                     ['code', requrl.searchParams.get('code')],
                     ['redirect_uri', mainConfig.discord.redirectURI]
                 ]
-                var req = http.request({
-                    pathname: '/api/oauth2/token',
+                var req = https.request({
+                    path: '/api/oauth2/token',
                     host: 'discord.com',
                     method: 'POST',
                     headers: {
@@ -76,13 +77,25 @@ async function handler(
                     var response = ''
                     res.on('data', data => response += data.toString('ascii'))
                     res.on('end', () => resolve(JSON.parse(response)))
-                })
-                req.write(data.map(t => t.map(n => encodeURIComponent(n)).join('=')).join('&'))
-                req.end()
-            }).then((res: any) => {
-                res['intergration'] = 'discord'
-                res['user'] = session.user
-                db.create(`intergration:${genLongID()}`, res)
+                });
+                req.write(data.map(t => t.map(n => encodeURIComponent(n)).join('=')).join('&'));
+                req.end();
+            }).then(async (res: any) => {
+                res['intergration'] = 'discord';
+                res['user'] = session.user;
+                res['expires_at'] = Date.now() + res['expires_in']
+                res['created_at'] = Date.now()
+                delete res['expires_in']
+                try {
+                    (await db.query(`SELECT intergrations.*.* FROM ${session.user} WHERE intergration = 'discord'`))[0].result[0].intergrations
+                        .forEach((t: discordIntergration) => {
+                            db.delete(t.id)
+                            db.query(`UPDATE ${session.user} SET intergrations -= ${t.id}`)
+                        });
+                    db.create(`intergration:\`${genLongID()}\``, res).then(({ id }) => db.query(`UPDATE ${session.user} SET intergrations += ${id}`));
+                } catch (error) {
+                    console.log('create', error)
+                }
             })
 
             res.writeHead(200, "Intergration Linked")

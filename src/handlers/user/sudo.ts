@@ -18,6 +18,16 @@ async function handler(
     req: http.IncomingMessage,
     res: http.ServerResponse
 ) {
+    if (!req.headers.cookie) {
+        res.writeHead(400, "No SessionID", { 'Content-Type': 'application/json' })
+        res.write(JSON.stringify({
+            code: 400,
+            error: "No SessionID",
+            message: "You must specify a session id"
+        }))
+        return res.end()
+    }
+    
     const cookies = Object.fromEntries(req.headers.cookie.split(';').map(t => t.split('=').map(t => decodeURIComponent(t).trim())))
 
     var session: session = await checkSession(cookies.sessionID).catch((reg) => {
@@ -28,7 +38,6 @@ async function handler(
     })
 
     if (!session) { return }
-
 
     var user: any = (await db.select(session.user))[0]
 
@@ -56,7 +65,7 @@ async function handler(
     res.write(JSON.stringify({
         code: 200,
         message: "Your session hase been evelated, it will expire in 5 minutes",
-        id: session.id
+        id: session.id.replace(/[^A-Z,a-z,\-,0-9,\:]/g,'`')
     }))
     return res.end()
 }

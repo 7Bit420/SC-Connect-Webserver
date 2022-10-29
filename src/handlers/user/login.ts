@@ -25,12 +25,14 @@ async function handler(
         return res.end()
     }
 
-    var sessions: session[] = (await db.query<{}>(`SELECT * FROM ${user.sessions.join(', ')}`))[0].result
-    sessions.forEach(t=>{
-        if (t.expiresAt < Date.now()) {
+    var sessions: session[] = (await db.query<session>(`SELECT sessions.*.* FROM ${user.id} PARALLEL`))[0].result[0].sessions;
+    sessions = sessions.filter(t=>{
+        if ((t.expiresAt < Date.now()) || (t.sudo)) {
             db.delete(t.id)
             db.query(`UPDATE ${user.id} SET sessions -= ${t.id}`)
+            return false
         }
+        return true
     })
 
     if (sessions.length <= 0) {
@@ -48,18 +50,17 @@ async function handler(
         res.write(JSON.stringify({
             code: 200,
             error: "Session Created",
-            id: session.id
+            id: session.id.replace(/[^A-Z,a-z,\-,0-9,\:]/g,'`')
         }))
         return res.end()
     } else {
         var updateSession = sessions.splice(sessions.findIndex(t => !t.sudo), 1)[0]
-        sessions.filter(t => t.sudo).forEach(r => db.delete(r.id))
 
         try {
             db.modify(updateSession.id, [{
-                op: 'change',
+                op: 'replace',
                 path: 'expiresAt',
-                value: (Date.now() + 21600000).toString(),
+                value: Date.now() + 21600000,
             }])
         } catch (err) {
             console.log('Modify')
@@ -69,7 +70,7 @@ async function handler(
         res.write(JSON.stringify({
             code: 200,
             message: "Session Renued",
-            id: updateSession.id,
+            id: updateSession.id.replace(/[^A-Z,a-z,\-,0-9,\:]/g,'`'),
             expiresAt: updateSession.expiresAt
         }))
         return res.end()
