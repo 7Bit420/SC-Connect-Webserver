@@ -1,11 +1,15 @@
 .vscode
 .git
 .links
+.DS_Store
 config/7bit.hopto.org
 database
 node_modules
 out
+config/*
 pages/**
 njs-*
 !pages/errors/**
 !pages/index.html
+!config/cert
+!config/mime.json
