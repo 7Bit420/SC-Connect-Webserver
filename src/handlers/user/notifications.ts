@@ -28,7 +28,7 @@ async function handler(
 
     res.writeHead(200, 'OK', { 'Content-Type': 'application/json' })
     res.write(JSON.stringify({
-        notifications: (await db.query(`SELECT * FROM ${user.notifications.join(', ')}`))[0].result,
+        notifications: (await db.query(`SELECT notifications.*.* FROM ${user} PARRELL`))[0].result[0].notifications,
         code: 200,
         message: "Got Notifications"
     }))
