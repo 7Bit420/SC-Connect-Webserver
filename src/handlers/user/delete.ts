@@ -3,10 +3,10 @@ import { checkSession } from "../../util/checkSession";
 import { session } from "./login";
 import * as http from "http";
 
-const path = '/user/create'
+const path = '/user/delete'
 const special = false
 const config = {
-    quickHandle: '/user/create'
+    quickHandle: '/user/delete'
 }
 
 async function handler(
@@ -35,12 +35,24 @@ async function handler(
     }
 
     try {
-        var user: any = (await db.select(session.user))[0]
+        await db.query(
+            `DELETE (SELECT sessions.*.*, notifications.*.*, intergrations.*.* FROM ${session.user}); \n` +
+            `UPDATE ${session.user} SET sessions=[], notifications=[], intergrations=[];\n` +
+            `INSERT INTO archive (SELECT * FROM ${session.user});\n` +
+            `DELETE ${session.user};`
+        )
+        res.writeHead(200, "Account Deleted")
+        res.write(JSON.stringify({
+            code: 200,
+            error: "Account Deleted",
+            message: "Account Deleted, please contanct an administratior for assistance if you did not intend to delete your account"
+        }))
+        return res.end()
     } catch (error) {
         console.log(error)
     }
 
-    
+
 }
 
 export { path, config, special, handler }

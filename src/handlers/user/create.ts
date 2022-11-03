@@ -54,7 +54,12 @@ async function handler(
             .map(([t, a]) => [t, stringToType(a)])
     );
 
-    var userFinalInfo = { id: '' }
+    var userFinalInfo = { 
+        id: '',
+        intergrations: [],
+        notifications: [],
+        sessions: []
+    }
 
     if (userReqInfo.migratedAccount) {
         for (var k of autoInfo.keys()) {

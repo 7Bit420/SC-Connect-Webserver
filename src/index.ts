@@ -36,6 +36,11 @@ const config = {
     }
 })();
 
+process.on('unhandledRejection', (err,promise)=>{
+    console.log(err)
+    promise.catch(console.log)
+})
+
 export { config, processEventEmitter }
 
 // client_id=1034566036625817690&client_secret=7pkfBIrxYg37klCPG0mNWAgIIVCszoc9&token=wNs2n7iTwIECujumMy09VooMufs6tr

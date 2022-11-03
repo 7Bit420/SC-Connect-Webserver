@@ -43,7 +43,7 @@ async function handler(
 
     const requrl = new URL(req.url, `http://${req.headers.host}`)
     
-    switch (requrl.searchParams.get('intergration')) {
+    switch (requrl.searchParams.get('intergation')) {
         case 'discord':
             var scopes = ['identify', 'email', 'connections', 'messages.read']
             var linkSession = await db.create('link-session', {

@@ -38,7 +38,17 @@ async function handler(
 
     switch (requrl.pathname.replace(path, '')) {
         case '/discord':
-            var session: discordIntergtaionSession = (await db.select<discordIntergtaionSession>(requrl.searchParams.get('state')))[0]
+            try {
+                var session: discordIntergtaionSession = (await db.select<discordIntergtaionSession>(requrl.searchParams.get('state')))[0]
+            } catch (err) {
+                res.writeHead(400, "Invalid State")
+                res.write(JSON.stringify({
+                    code: 400,
+                    error: "Invalid State",
+                    message: "Your state did't link to a Intergation session"
+                }))
+                return res.end()
+            }
             if (!session) {
                 res.writeHead(400, "Invalid State")
                 res.write(JSON.stringify({
@@ -87,11 +97,11 @@ async function handler(
                 res['created_at'] = Date.now()
                 delete res['expires_in']
                 try {
-                    (await db.query(`SELECT intergrations.*.* FROM ${session.user} WHERE intergration = 'discord'`))[0].result[0].intergrations
-                        .forEach((t: discordIntergration) => {
-                            db.delete(t.id)
-                            db.query(`UPDATE ${session.user} SET intergrations -= ${t.id}`)
-                        });
+                    (await db.query<any>(`SELECT * FROM intergration WHERE (intergration = 'discord' AND user = ${session.user})`)
+                    )[0].result.forEach((t: discordIntergration) => {
+                        db.delete(t.id)
+                        db.query(`UPDATE ${session.user} SET intergrations -= ${t.id}`)
+                    })
                     db.create(`intergration:\`${genLongID()}\``, res).then(({ id }) => db.query(`UPDATE ${session.user} SET intergrations += ${id}`));
                 } catch (error) {
                     console.log('create', error)
